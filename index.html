@@ -1,0 +1,1542 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>금속의 이온화 경향 미사일 퀴즈 v5</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background-color: #0b0f19;
+      color: #e2e8f0;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding: 10px;
+    }
+    header {
+      margin-bottom: 6px;
+      text-align: center;
+    }
+    h1 {
+      font-size: 22px;
+      color: #38bdf8;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .top-panel {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .guide-bar {
+      font-size: 13px;
+      color: #94a3b8;
+      background: #1e293b;
+      padding: 5px 14px;
+      border-radius: 9999px;
+      border: 1px solid #334155;
+    }
+    .btn-rank {
+      background: #3b82f6;
+      color: #fff;
+      border: none;
+      padding: 5px 14px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-rank:hover {
+      background: #2563eb;
+    }
+    .game-container {
+      position: relative;
+      border: 2px solid #334155;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+      overflow: hidden;
+      background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+    }
+    canvas {
+      display: block;
+    }
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(15, 23, 42, 0.90);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(6px);
+      z-index: 10;
+      padding: 24px;
+      transition: opacity 0.2s ease;
+    }
+    .overlay.hidden {
+      display: none;
+    }
+    .overlay h2 {
+      font-size: 26px;
+      margin-bottom: 10px;
+    }
+    .overlay p {
+      font-size: 14px;
+      color: #cbd5e1;
+      margin-bottom: 14px;
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    /* 난이도 선택 바 */
+    .diff-selector {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 10px 16px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .diff-title {
+      font-size: 13px;
+      color: #94a3b8;
+      font-weight: 600;
+    }
+    .diff-btn-group {
+      display: flex;
+      gap: 8px;
+    }
+    .diff-btn {
+      background: #1e293b;
+      color: #94a3b8;
+      border: 1px solid #475569;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .diff-btn:hover {
+      background: #334155;
+      color: #fff;
+    }
+    .diff-btn.active[data-level="easy"] {
+      background: #059669;
+      color: #fff;
+      border-color: #10b981;
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+    }
+    .diff-btn.active[data-level="normal"] {
+      background: #0284c7;
+      color: #fff;
+      border-color: #38bdf8;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+    }
+    .diff-btn.active[data-level="hard"] {
+      background: #dc2626;
+      color: #fff;
+      border-color: #f87171;
+      box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+    }
+    .diff-desc {
+      font-size: 12px;
+      color: #38bdf8;
+      min-height: 18px;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+    }
+    .btn {
+      background: #0284c7;
+      color: #fff;
+      border: none;
+      padding: 9px 24px;
+      font-size: 15px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn:hover {
+      background: #0369a1;
+      transform: translateY(-1px);
+    }
+    .btn-secondary {
+      background: #475569;
+    }
+    .btn-secondary:hover {
+      background: #334155;
+    }
+    .status-bar {
+      width: 840px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 14px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      margin-top: 6px;
+      font-size: 14px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 4px;
+      background: #334155;
+      font-weight: 600;
+    }
+    .badge-diff {
+      background: #047857;
+      color: #a7f3d0;
+    }
+    .badge-time {
+      background: #0369a1;
+      color: #7dd3fc;
+      font-family: monospace;
+      font-size: 15px;
+    }
+    .badge-life {
+      color: #f43f5e;
+      font-size: 15px;
+      letter-spacing: 2px;
+    }
+
+    /* 족별 모양 및 규칙 범례 */
+    .shape-legend {
+      width: 840px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 6px;
+      background: #111827;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid #1f2937;
+      font-size: 12px;
+      color: #94a3b8;
+    }
+    .legend-row {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      display: inline-block;
+      border-radius: 2px;
+    }
+
+    /* 순위표 모달 */
+    .modal-box {
+      background: #1e293b;
+      border: 1px solid #475569;
+      border-radius: 12px;
+      padding: 20px;
+      width: 480px;
+      max-width: 92%;
+      text-align: center;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+    }
+    .modal-box h3 {
+      font-size: 20px;
+      color: #facc15;
+      margin-bottom: 12px;
+    }
+    .rank-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 18px 0;
+      font-size: 13px;
+    }
+    .rank-table th {
+      background: #0f172a;
+      color: #94a3b8;
+      padding: 6px;
+      border-bottom: 1px solid #334155;
+    }
+    .rank-table td {
+      padding: 7px 6px;
+      border-bottom: 1px solid #1e293b;
+      color: #e2e8f0;
+    }
+    .rank-table tr:nth-child(even) {
+      background: rgba(15, 23, 42, 0.4);
+    }
+    .rank-1 { color: #facc15; font-weight: bold; }
+    .rank-2 { color: #e2e8f0; font-weight: bold; }
+    .rank-3 { color: #d97706; font-weight: bold; }
+    .input-record {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+      justify-content: center;
+    }
+    .input-record input {
+      background: #0f172a;
+      border: 1px solid #475569;
+      color: #f8fafc;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 14px;
+      outline: none;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🚀 금속 이온화 경향 미사일 퀴즈 v5</h1>
+    <div class="top-panel">
+      <div class="guide-bar">
+        조작: <strong>←, →</strong> 이동 | <strong>Space</strong> 발사 | <strong>난이도별 맞춤 속도</strong>
+      </div>
+      <button id="viewRankBtn" class="btn-rank">🏆 순위표 보기</button>
+    </div>
+  </header>
+
+  <div class="game-container">
+    <canvas id="gameCanvas" width="840" height="580"></canvas>
+
+    <!-- 시작 / 게임오버 오버레이 -->
+    <div id="msgOverlay" class="overlay">
+      <h2 id="overlayTitle">미션 브리핑</h2>
+      <p id="overlayDesc">
+        화면에 떠 있는 금속 원소를 <strong>이온화 경향이 큰 순서</strong>대로 요격하세요.<br>
+        원하는 난이도를 선택한 후 게임을 시작하세요.
+      </p>
+
+      <!-- 난이도 선택 UI -->
+      <div id="diffSelectorSection" class="diff-selector">
+        <div class="diff-title">🎯 난이도 선택</div>
+        <div class="diff-btn-group">
+          <button class="diff-btn" data-level="easy">🟢 초급 (6개)</button>
+          <button class="diff-btn active" data-level="normal">🟡 중급 (10개)</button>
+          <button class="diff-btn" data-level="hard">🔴 고급 (15개)</button>
+        </div>
+        <div id="diffDescText" class="diff-desc">원소 10개, 표준 속도 및 적당한 공격 빈도</div>
+      </div>
+
+      <div id="recordInputSection" class="input-record" style="display: none;">
+        <input type="text" id="playerNameInput" placeholder="닉네임 입력 (최대 6자)" maxlength="6" value="도전자" />
+        <button id="saveRecordBtn" class="btn">기록 등록</button>
+      </div>
+      <div class="btn-group">
+        <button id="startBtn" class="btn">게임 시작</button>
+        <button id="overlayRankBtn" class="btn btn-secondary">순위표 확인</button>
+      </div>
+    </div>
+
+    <!-- 순위표 모달 -->
+    <div id="rankModal" class="overlay hidden">
+      <div class="modal-box">
+        <h3>🏆 명예의 전당 (Top 5)</h3>
+        <table class="rank-table">
+          <thead>
+            <tr>
+              <th>순위</th>
+              <th>난이도</th>
+              <th>닉네임</th>
+              <th>클리어 타임</th>
+              <th>날짜</th>
+            </tr>
+          </thead>
+          <tbody id="rankTableBody">
+            <!-- 랭킹 동적 삽입 -->
+          </tbody>
+        </table>
+        <button id="closeRankBtn" class="btn btn-secondary">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="status-bar">
+    <div>난이도: <span id="diffDisplay" class="badge badge-diff">중급</span></div>
+    <div>내 체력: <span id="lifeDisplay" class="badge badge-life">❤️❤️❤️</span></div>
+    <div>다음 요격 대상: <span id="targetHint" class="badge" style="color: #38bdf8;">-</span></div>
+    <div>진행 시간: <span id="timerDisplay" class="badge badge-time">00:00.00</span></div>
+    <div>남은 표적: <span id="remainCount" class="badge">10</span></div>
+  </div>
+
+  <!-- 범례 -->
+  <div class="shape-legend">
+    <div class="legend-row">
+      <div class="legend-item"><span class="legend-dot" style="background:#dba55c;"></span> <strong>1족(알칼리)</strong>: 마름모</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#5cb894;"></span> <strong>2족(알칼리토)</strong>: 육각형</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#5aabb8;"></span> <strong>13족(붕소족)</strong>: 삼각형</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#9689c9;"></span> <strong>14족(탄소족)</strong>: 팔각형</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#93a0b3;"></span> <strong>8·10족(전이)</strong>: 둥근사각형</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#d1ad3f;"></span> <strong>11족(동전금속)</strong>: 이중원(코인)</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#c98aa8;"></span> <strong>12족(아연족)</strong>: 오각형</div>
+    </div>
+    <div class="legend-row" style="color: #f87171; border-top: 1px dashed #334155; padding-top: 4px;">
+      <span>⚠️ <strong>공격 원소 (H보다 이온화 경향 작음)</strong>: Cu(구리), Hg(수은), Ag(은), Pt(백금), Au(금) — 조준 레이저 발사 및 회피 필요</span>
+    </div>
+  </div>
+
+<script>
+  // 1. 금속 이온화 경향 전체 목록 및 족별 형태
+  // K > Ca > Na > Mg > Al > Zn > Fe > Ni > Sn > Pb > (H) > Cu > Hg > Ag > Pt > Au
+  const ALL_METALS = [
+    { symbol: 'K',  name: '칼륨',     rank: 1,  group: '1족',  shape: 'diamond',  color: '#dba55c', canAttack: false },
+    { symbol: 'Ca', name: '칼슘',     rank: 2,  group: '2족',  shape: 'hexagon',  color: '#5cb894', canAttack: false },
+    { symbol: 'Na', name: '나트륨',   rank: 3,  group: '1족',  shape: 'diamond',  color: '#dba55c', canAttack: false },
+    { symbol: 'Mg', name: '마그네슘', rank: 4,  group: '2족',  shape: 'hexagon',  color: '#5cb894', canAttack: false },
+    { symbol: 'Al', name: '알루미늄', rank: 5,  group: '13족', shape: 'triangle', color: '#5aabb8', canAttack: false },
+    { symbol: 'Zn', name: '아연',     rank: 6,  group: '12족', shape: 'pentagon', color: '#c98aa8', canAttack: false },
+    { symbol: 'Fe', name: '철',       rank: 7,  group: '8족',  shape: 'square',   color: '#93a0b3', canAttack: false },
+    { symbol: 'Ni', name: '니켈',     rank: 8,  group: '10족', shape: 'square',   color: '#aeb8c7', canAttack: false },
+    { symbol: 'Sn', name: '주석',     rank: 9,  group: '14족', shape: 'octagon',  color: '#9689c9', canAttack: false },
+    { symbol: 'Pb', name: '납',       rank: 10, group: '14족', shape: 'octagon',  color: '#9689c9', canAttack: false },
+    // 수소(H) 경계선 아래 원소들 (공격형 원소, 실제 금속 색감을 반영)
+    { symbol: 'Cu', name: '구리',     rank: 11, group: '11족', shape: 'coin',     color: '#c1794e', canAttack: true },
+    { symbol: 'Hg', name: '수은',     rank: 12, group: '12족', shape: 'pentagon', color: '#b6bdc7', canAttack: true },
+    { symbol: 'Ag', name: '은',       rank: 13, group: '11족', shape: 'coin',     color: '#d6dae1', canAttack: true },
+    { symbol: 'Pt', name: '백금',     rank: 14, group: '10족', shape: 'square',   color: '#e2e5ea', canAttack: true },
+    { symbol: 'Au', name: '금',       rank: 15, group: '11족', shape: 'coin',     color: '#d1ad3f', canAttack: true }
+  ];
+
+  // 2. 난이도별 설정 파라미터 (원소 수, 속도, 공격 빈도 조절)
+  const DIFFICULTY_CONFIG = {
+    easy: {
+      key: 'easy',
+      name: '초급',
+      desc: '원소 6개, 편안하고 여유로운 속도, 초보자 추천',
+      elementCount: 6,
+      attackCount: 1, // 공격 원소 1개
+      baseSpeed: 0.45,
+      speedFactor: 0.04, // K ~ Au 간 속도 편차 완화
+      bulletSpeed: 1.8,  // 느린 적 탄환
+      attackIntervalMin: 180, // 약 3~4.5초 주기
+      attackIntervalRange: 90,
+      badgeColor: '#059669',
+      badgeTextColor: '#a7f3d0'
+    },
+    normal: {
+      key: 'normal',
+      name: '중급',
+      desc: '원소 10개, 표준 속도 및 적당한 공격 빈도',
+      elementCount: 10,
+      attackCount: 2, // 공격 원소 2개로 축소
+      baseSpeed: 0.65,
+      speedFactor: 0.06,
+      bulletSpeed: 1.6, // 적 탄환 이동속도 완화
+      attackIntervalMin: 120, // 약 2~3.2초 주기
+      attackIntervalRange: 70,
+      badgeColor: '#0284c7',
+      badgeTextColor: '#bae6fd'
+    },
+    hard: {
+      key: 'hard',
+      name: '고급',
+      desc: '15개 전체 원소 출동! 스릴 있는 빠른 속도와 잦은 공격',
+      elementCount: 15,
+      attackCount: 3, // 공격 원소 5개 -> 3개로 축소
+      baseSpeed: 0.90,
+      speedFactor: 0.08,
+      bulletSpeed: 2.1, // 적 탄환 이동속도 완화
+      attackIntervalMin: 90, // 약 1.5~2.5초 주기
+      attackIntervalRange: 60,
+      badgeColor: '#dc2626',
+      badgeTextColor: '#fecaca'
+    }
+  };
+
+  let currentDifficulty = 'normal'; // 기본 중급
+
+  // 3. 사운드 효과
+  let audioCtx = null;
+  function getAudioContext() {
+    if (!audioCtx) {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (AudioContextClass) audioCtx = new AudioContextClass();
+    }
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+
+  function playSound(type) {
+    try {
+      const ctx = getAudioContext();
+      if (!ctx) return;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      const now = ctx.currentTime;
+
+      if (type === 'shoot') {
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(620, now);
+        osc.frequency.exponentialRampToValueAtTime(170, now + 0.1);
+        gain.gain.setValueAtTime(0.18, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.1);
+        osc.start(now);
+        osc.stop(now + 0.1);
+      } else if (type === 'enemyShoot') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(380, now);
+        osc.frequency.exponentialRampToValueAtTime(140, now + 0.18);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.18);
+        osc.start(now);
+        osc.stop(now + 0.18);
+      } else if (type === 'playerHit') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(200, now);
+        osc.frequency.linearRampToValueAtTime(70, now + 0.25);
+        gain.gain.setValueAtTime(0.35, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
+        osc.start(now);
+        osc.stop(now + 0.25);
+      } else if (type === 'hit') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(440, now);
+        osc.frequency.exponentialRampToValueAtTime(880, now + 0.18);
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.18);
+        osc.start(now);
+        osc.stop(now + 0.18);
+      } else if (type === 'explode') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(140, now);
+        osc.frequency.exponentialRampToValueAtTime(30, now + 0.35);
+        gain.gain.setValueAtTime(0.35, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.35);
+        osc.start(now);
+        osc.stop(now + 0.35);
+      } else if (type === 'clear') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(523.25, now);
+        osc.frequency.setValueAtTime(659.25, now + 0.1);
+        osc.frequency.setValueAtTime(783.99, now + 0.2);
+        osc.frequency.setValueAtTime(1046.50, now + 0.35);
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.55);
+        osc.start(now);
+        osc.stop(now + 0.55);
+      }
+    } catch (e) {}
+  }
+
+  // 4. 랭킹 시스템 (LocalStorage)
+  const DEFAULT_RANKINGS = [
+    { diff: '고급', name: '화학영재', time: 38.42, date: '2026-09-08' },
+    { diff: '중급', name: '이온마스터', time: 24.15, date: '2026-09-09' },
+    { diff: '중급', name: '전자의달인', time: 31.80, date: '2026-09-10' },
+    { diff: '초급', name: '원소탐험가', time: 15.55, date: '2026-09-10' },
+    { diff: '초급', name: '라부아지에', time: 22.20, date: '2026-09-11' }
+  ];
+
+  function getRankings() {
+    try {
+      const data = localStorage.getItem('metal_quiz_leaderboard_v5');
+      if (!data) {
+        localStorage.setItem('metal_quiz_leaderboard_v5', JSON.stringify(DEFAULT_RANKINGS));
+        return DEFAULT_RANKINGS;
+      }
+      return JSON.parse(data);
+    } catch(e) {
+      return DEFAULT_RANKINGS;
+    }
+  }
+
+  function saveNewScore(diffName, name, timeVal) {
+    try {
+      const list = getRankings();
+      const today = new Date().toISOString().split('T')[0];
+      list.push({ diff: diffName, name: name || '도전자', time: parseFloat(timeVal.toFixed(2)), date: today });
+      list.sort((a, b) => a.time - b.time);
+      const top5 = list.slice(0, 5);
+      localStorage.setItem('metal_quiz_leaderboard_v5', JSON.stringify(top5));
+      renderRankTable();
+    } catch(e) {}
+  }
+
+  function renderRankTable() {
+    const list = getRankings();
+    const tbody = document.getElementById('rankTableBody');
+    tbody.innerHTML = '';
+    list.forEach((item, idx) => {
+      const tr = document.createElement('tr');
+      const rankClass = idx === 0 ? 'rank-1' : (idx === 1 ? 'rank-2' : (idx === 2 ? 'rank-3' : ''));
+      tr.innerHTML = `
+        <td class="${rankClass}">${idx + 1}위</td>
+        <td><span class="badge" style="font-size:11px;">${item.diff || '중급'}</span></td>
+        <td>${item.name}</td>
+        <td style="font-family: monospace; color: #38bdf8;">${formatTime(item.time)}</td>
+        <td style="color:#94a3b8;">${item.date}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function formatTime(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    const ms = Math.floor((seconds % 1) * 100);
+    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}.${String(ms).padStart(2, '0')}`;
+  }
+
+  // 5. 캔버스 및 게임 변수
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+
+  const overlay = document.getElementById('msgOverlay');
+  const overlayTitle = document.getElementById('overlayTitle');
+  const overlayDesc = document.getElementById('overlayDesc');
+  const startBtn = document.getElementById('startBtn');
+  const overlayRankBtn = document.getElementById('overlayRankBtn');
+  const viewRankBtn = document.getElementById('viewRankBtn');
+  const rankModal = document.getElementById('rankModal');
+  const closeRankBtn = document.getElementById('closeRankBtn');
+  const recordInputSection = document.getElementById('recordInputSection');
+  const playerNameInput = document.getElementById('playerNameInput');
+  const saveRecordBtn = document.getElementById('saveRecordBtn');
+  const diffDescText = document.getElementById('diffDescText');
+  const diffButtons = document.querySelectorAll('.diff-btn');
+
+  const diffDisplayEl = document.getElementById('diffDisplay');
+  const remainCountEl = document.getElementById('remainCount');
+  const targetHintEl = document.getElementById('targetHint');
+  const timerDisplayEl = document.getElementById('timerDisplay');
+  const lifeDisplayEl = document.getElementById('lifeDisplay');
+
+  let gameState = 'STOPPED';
+  let targets = [];
+  let missiles = [];
+  let enemyBullets = [];
+  let particles = [];
+  let startTime = 0;
+  let finalElapsedTime = 0;
+  let currentElementTotal = 10;
+
+  // 차체 외곽선 기준점 (12점: 상단5 + 우측중앙 + 하단5 + 좌측중앙) - 손상/파편 계산에 공용으로 사용
+  const HULL_BASE_PTS = [
+    { x: -1, y: 0 }, { x: -0.5, y: 0 }, { x: 0, y: 0 }, { x: 0.5, y: 0 }, { x: 1, y: 0 },
+    { x: 1, y: 0.5 },
+    { x: 1, y: 1 }, { x: 0.5, y: 1 }, { x: 0, y: 1 }, { x: -0.5, y: 1 }, { x: -1, y: 1 },
+    { x: -1, y: 0.5 }
+  ];
+  const HULL_LEFT_IDX = [0, 10, 11];
+  const HULL_RIGHT_IDX = [4, 6, 5];
+
+  const ship = {
+    x: canvas.width / 2,
+    y: canvas.height - 42,
+    width: 96,
+    height: 42,
+    speed: 6.8,
+    lives: 7,
+    invulnerableTimer: 0,
+    damageMarks: [],
+    brokenChips: [],
+    hullJitter: HULL_BASE_PTS.map(() => ({ dx: 0, dy: 0 })),
+    turretOffset: { x: 0, y: 0 },
+    barrelBend: 0
+  };
+
+  const keys = { ArrowLeft: false, ArrowRight: false, Space: false };
+
+  window.addEventListener('keydown', (e) => {
+    if (e.code === 'ArrowLeft') keys.ArrowLeft = true;
+    if (e.code === 'ArrowRight') keys.ArrowRight = true;
+    if (e.code === 'Space') {
+      if (!keys.Space && gameState === 'PLAYING') {
+        fireMissile();
+      }
+      keys.Space = true;
+      e.preventDefault();
+    }
+  });
+
+  window.addEventListener('keyup', (e) => {
+    if (e.code === 'ArrowLeft') keys.ArrowLeft = false;
+    if (e.code === 'ArrowRight') keys.ArrowRight = false;
+    if (e.code === 'Space') keys.Space = false;
+  });
+
+  // 난이도 버튼 클릭 이벤트
+  diffButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      diffButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentDifficulty = btn.dataset.level;
+      const cfg = DIFFICULTY_CONFIG[currentDifficulty];
+      diffDescText.textContent = cfg.desc;
+      updateDiffDisplayUI();
+    });
+  });
+
+  function updateDiffDisplayUI() {
+    const cfg = DIFFICULTY_CONFIG[currentDifficulty];
+    diffDisplayEl.textContent = cfg.name;
+    diffDisplayEl.style.backgroundColor = cfg.badgeColor;
+    diffDisplayEl.style.color = cfg.badgeTextColor;
+  }
+
+  viewRankBtn.addEventListener('click', () => {
+    renderRankTable();
+    rankModal.classList.remove('hidden');
+  });
+  overlayRankBtn.addEventListener('click', () => {
+    renderRankTable();
+    rankModal.classList.remove('hidden');
+  });
+  closeRankBtn.addEventListener('click', () => {
+    rankModal.classList.add('hidden');
+  });
+
+  startBtn.addEventListener('click', () => {
+    initGame();
+  });
+
+  saveRecordBtn.addEventListener('click', () => {
+    const pName = playerNameInput.value.trim() || '도전자';
+    const cfg = DIFFICULTY_CONFIG[currentDifficulty];
+    saveNewScore(cfg.name, pName, finalElapsedTime);
+    recordInputSection.style.display = 'none';
+    renderRankTable();
+    rankModal.classList.remove('hidden');
+  });
+
+  // 6. 게임 세션 초기화 (난이도 설정 적용)
+  function initGame() {
+    overlay.classList.add('hidden');
+    recordInputSection.style.display = 'none';
+    gameState = 'PLAYING';
+    startTime = Date.now();
+
+    const cfg = DIFFICULTY_CONFIG[currentDifficulty];
+    currentElementTotal = cfg.elementCount;
+    updateDiffDisplayUI();
+
+    ship.lives = 7;
+    ship.damageMarks = [];
+    ship.brokenChips = [];
+    ship.hullJitter = ship.hullJitter.map(() => ({ dx: 0, dy: 0 }));
+    ship.turretOffset = { x: 0, y: 0 };
+    ship.barrelBend = 0;
+    ship.invulnerableTimer = 0;
+    ship.x = canvas.width / 2;
+
+    // 난이도별 원소 추출
+    let selected = [];
+    if (currentDifficulty === 'hard') {
+      // 15개 전체 출제
+      selected = [...ALL_METALS].sort(() => 0.5 - Math.random());
+    } else {
+      const attackCount = cfg.attackCount;
+      const normalCount = cfg.elementCount - attackCount;
+      const attackPool = ALL_METALS.filter(m => m.canAttack).sort(() => 0.5 - Math.random()).slice(0, attackCount);
+      const normalPool = ALL_METALS.filter(m => !m.canAttack).sort(() => 0.5 - Math.random()).slice(0, normalCount);
+      selected = [...attackPool, ...normalPool].sort(() => 0.5 - Math.random());
+    }
+
+    targets = [];
+    missiles = [];
+    enemyBullets = [];
+    particles = [];
+
+    // 난이도별 그리드 배치
+    const cols = currentDifficulty === 'hard' ? 5 : (currentDifficulty === 'normal' ? 5 : 3);
+    const colWidth = (canvas.width - 120) / cols;
+    const targetRadius = currentDifficulty === 'hard' ? 26 : (currentDifficulty === 'normal' ? 28 : 31);
+
+    // 이번 판에 실제로 공격(발사)할 원소를 attackCount개로 제한
+    // (고급은 15개 전체가 출제되지만, 그중 일부만 실제로 미사일을 쏘도록 함)
+    const attackEligible = selected.filter(m => m.canAttack);
+    const activeAttackers = new Set(
+      [...attackEligible].sort(() => 0.5 - Math.random()).slice(0, cfg.attackCount).map(m => m.symbol)
+    );
+
+    selected.forEach((item, index) => {
+      const row = Math.floor(index / cols);
+      const col = index % cols;
+
+      // 난이도별 완화된 이동 속도 계산
+      const reactivityMultiplier = 0.75 + (16 - item.rank) * cfg.speedFactor;
+      const baseVx = (Math.random() > 0.5 ? 1 : -1) * cfg.baseSpeed;
+      const baseVy = (Math.random() > 0.5 ? 1 : -1) * (cfg.baseSpeed * 0.7);
+
+      const isActiveAttacker = activeAttackers.has(item.symbol);
+      targets.push({
+        ...item,
+        canAttack: isActiveAttacker,
+        x: 75 + col * colWidth + (Math.random() - 0.5) * 15,
+        y: 65 + row * (currentDifficulty === 'hard' ? 75 : 95) + (Math.random() - 0.5) * 12,
+        vx: baseVx * reactivityMultiplier,
+        vy: baseVy * reactivityMultiplier,
+        radius: targetRadius,
+        // 첫 공격 쿨다운
+        attackCooldown: isActiveAttacker ? 70 + Math.floor(Math.random() * 60) : 999999
+      });
+    });
+
+    updateUI();
+  }
+
+  function fireMissile() {
+    missiles.push({
+      x: ship.x,
+      y: ship.y - 46,
+      radius: 7,
+      speed: 8.8
+    });
+    playSound('shoot');
+  }
+
+  // 플레이어 조준 탄환 발사 (난이도별 속도 반영)
+  function fireEnemyBullet(target) {
+    const cfg = DIFFICULTY_CONFIG[currentDifficulty];
+    const angle = Math.atan2(ship.y - target.y, ship.x - target.x);
+
+    enemyBullets.push({
+      x: target.x,
+      y: target.y + 10,
+      vx: Math.cos(angle) * cfg.bulletSpeed,
+      vy: Math.sin(angle) * cfg.bulletSpeed,
+      radius: 5,
+      color: '#ef4444'
+    });
+
+    createExplosion(target.x, target.y + 15, '#ef4444', 8);
+    playSound('enemyShoot');
+  }
+
+  function createExplosion(x, y, color, count = 20) {
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = Math.random() * 4 + 1;
+      particles.push({
+        x: x,
+        y: y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        life: 25,
+        maxLife: 25,
+        color: color
+      });
+    }
+  }
+
+  function getCurrentExpectedTarget() {
+    if (targets.length === 0) return null;
+    return targets.reduce((prev, curr) => (curr.rank < prev.rank ? curr : prev));
+  }
+
+  function updateUI() {
+    remainCountEl.textContent = targets.length;
+    let heartStr = '';
+    for (let i = 0; i < ship.lives; i++) heartStr += '❤️';
+    lifeDisplayEl.textContent = heartStr || '💀';
+
+    const expected = getCurrentExpectedTarget();
+    if (expected) {
+      targetHintEl.textContent = `${expected.symbol} (${expected.name}, ${expected.group})`;
+    } else {
+      targetHintEl.textContent = '모두 격추 완료';
+    }
+  }
+
+  // 순서 오류 발생 시 자폭
+  function handleWrongHit(hitTarget, expectedTarget, missileX, missileY) {
+    gameState = 'FAILED';
+    finalElapsedTime = (Date.now() - startTime) / 1000;
+    playSound('explode');
+    createExplosion(missileX, missileY, '#ef4444', 35);
+
+    setTimeout(() => {
+      overlayTitle.textContent = '💥 미사일 폭파!';
+      overlayTitle.style.color = '#ef4444';
+      overlayDesc.innerHTML = `
+        <span style="color:#f87171; font-weight:bold;">순서가 틀렸습니다!</span><br>
+        격추한 원소: <strong>${hitTarget.symbol} (${hitTarget.name} - ${hitTarget.group})</strong><br>
+        올바른 순서: 현재 가장 이온화 경향이 큰 원소는 
+        <strong style="color:#38bdf8;">${expectedTarget.symbol} (${expectedTarget.name} - ${expectedTarget.group})</strong> 입니다.<br><br>
+        (소요 시간: ${formatTime(finalElapsedTime)})<br>
+        난이도를 재선택하거나 다시 도전할 수 있습니다.
+      `;
+      startBtn.textContent = '다시 도전하기';
+      recordInputSection.style.display = 'none';
+      overlay.classList.remove('hidden');
+    }, 400);
+  }
+
+  // 피격 시 탱크에 남는 손상 자국 생성 (그을음 + 균열)
+  function createDamageMark() {
+    const mx = (Math.random() - 0.5) * (ship.width * 0.68);
+    const my = -ship.height * 0.15 + Math.random() * ship.height * 0.55;
+    const crack = [];
+    let cx = mx, cy = my;
+    const segs = 3 + Math.floor(Math.random() * 2);
+    for (let i = 0; i < segs; i++) {
+      cx += (Math.random() - 0.5) * 11;
+      cy += (Math.random() - 0.5) * 9;
+      crack.push({ x: cx, y: cy });
+    }
+    return { x: mx, y: my, r: 5 + Math.random() * 4, crack, seed: Math.random() * 100 };
+  }
+
+  // 피격 시 차체 좌/우 측면이 번갈아 파이고 파편이 떨어져 나가도록 함
+  function applyStructuralDamage(stage) {
+    const mag = 5 + stage * 2.6;
+    const side = (stage % 2 === 1) ? 'left' : 'right';
+    const group = side === 'left' ? HULL_LEFT_IDX : HULL_RIGHT_IDX;
+    const idx = group[Math.floor(Math.random() * group.length)];
+    const dirIn = side === 'left' ? 1 : -1; // 안쪽으로 파임
+
+    ship.hullJitter[idx].dx += dirIn * mag;
+    ship.hullJitter[idx].dy += (Math.random() - 0.5) * mag * 0.6;
+    group.forEach(gi => {
+      if (gi !== idx) {
+        ship.hullJitter[gi].dx += dirIn * mag * 0.3 * Math.random();
+        ship.hullJitter[gi].dy += (Math.random() - 0.5) * mag * 0.4;
+      }
+    });
+
+    // 파인 자리에서 바깥쪽으로 떨어져 나가는 파편
+    const anchor = HULL_BASE_PTS[idx];
+    ship.brokenChips.push({
+      nx: anchor.x,
+      ny: anchor.y,
+      side,
+      driftX: -dirIn * (10 + stage * 2.2),
+      driftY: (Math.random() - 0.5) * 14,
+      size: 7 + Math.random() * 4,
+      rot: (Math.random() - 0.5) * 0.8,
+      seed: Math.random() * 100
+    });
+
+    ship.turretOffset.x += (Math.random() - 0.5) * 3.2;
+    ship.turretOffset.y += (Math.random() - 0.5) * 2.2;
+    ship.barrelBend = Math.max(-0.5, Math.min(0.5, ship.barrelBend + (Math.random() - 0.5) * 0.12));
+  }
+
+  // 플레이어 피격 처리
+  function handlePlayerDamaged() {
+    ship.lives--;
+    playSound('playerHit');
+    createExplosion(ship.x, ship.y, '#f43f5e', 25);
+    ship.invulnerableTimer = 90;
+    ship.damageMarks.push(createDamageMark());
+    applyStructuralDamage(7 - ship.lives);
+    updateUI();
+
+    if (ship.lives <= 0) {
+      gameState = 'FAILED';
+      finalElapsedTime = (Date.now() - startTime) / 1000;
+      playSound('explode');
+      setTimeout(() => {
+        overlayTitle.textContent = '⚠️ 격추당했습니다!';
+        overlayTitle.style.color = '#f43f5e';
+        overlayDesc.innerHTML = `
+          수소(H)보다 이온화 경향이 작은 원소(Cu, Hg, Ag, Pt, Au)의 공격에 피격되었습니다!<br>
+          적 원소의 붉은색 조준선을 확인하고 좌우로 회피하세요.<br><br>
+          (소요 시간: ${formatTime(finalElapsedTime)})
+        `;
+        startBtn.textContent = '다시 도전하기';
+        recordInputSection.style.display = 'none';
+        overlay.classList.remove('hidden');
+      }, 400);
+    }
+  }
+
+  function handleGameClear() {
+    gameState = 'CLEARED';
+    finalElapsedTime = (Date.now() - startTime) / 1000;
+    playSound('clear');
+
+    const cfg = DIFFICULTY_CONFIG[currentDifficulty];
+    overlayTitle.textContent = `🎉 ${cfg.name} 미션 완수!`;
+    overlayTitle.style.color = '#22c55e';
+    overlayDesc.innerHTML = `
+      [${cfg.name}] 모드의 모든 원소(${cfg.elementCount}개)를 완벽하게 요격했습니다!<br>
+      최종 클리어 시간: <strong style="color: #38bdf8; font-size: 18px; font-family: monospace;">${formatTime(finalElapsedTime)}</strong><br>
+      순위표에 나의 기록을 등록해보세요!
+    `;
+    startBtn.textContent = '한 번 더 플레이';
+    recordInputSection.style.display = 'flex';
+    overlay.classList.remove('hidden');
+  }
+
+  // 7. 도형 그리기 (안전 래퍼)
+  function drawShapeByGroup(ctx, shape, r, color) {
+    ctx.beginPath();
+    if (shape === 'diamond') {
+      ctx.moveTo(0, -r * 1.15);
+      ctx.lineTo(r * 1.15, 0);
+      ctx.lineTo(0, r * 1.15);
+      ctx.lineTo(-r * 1.15, 0);
+      ctx.closePath();
+    } else if (shape === 'hexagon') {
+      for (let i = 0; i < 6; i++) {
+        const a = (Math.PI / 3) * i - Math.PI / 6;
+        const x = r * Math.cos(a);
+        const y = r * Math.sin(a);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+    } else if (shape === 'triangle') {
+      for (let i = 0; i < 3; i++) {
+        const a = (Math.PI * 2 / 3) * i - Math.PI / 2;
+        const x = r * 1.25 * Math.cos(a);
+        const y = r * 1.25 * Math.sin(a) + 3;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+    } else if (shape === 'square') {
+      const s = r * 0.88;
+      if (ctx.roundRect) {
+        ctx.roundRect(-s, -s, s * 2, s * 2, 8);
+      } else {
+        ctx.rect(-s, -s, s * 2, s * 2);
+      }
+    } else if (shape === 'coin') {
+      ctx.arc(0, 0, r, 0, Math.PI * 2);
+    } else if (shape === 'pentagon') {
+      for (let i = 0; i < 5; i++) {
+        const a = (Math.PI * 2 / 5) * i - Math.PI / 2;
+        const x = r * 1.08 * Math.cos(a);
+        const y = r * 1.08 * Math.sin(a);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+    } else if (shape === 'octagon') {
+      for (let i = 0; i < 8; i++) {
+        const a = (Math.PI / 4) * i - Math.PI / 8;
+        const x = r * Math.cos(a);
+        const y = r * Math.sin(a);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+    }
+  }
+
+  // 8. 게임 메인 루프
+  function update() {
+    if (gameState === 'PLAYING') {
+      const cfg = DIFFICULTY_CONFIG[currentDifficulty];
+      const currentElapsed = (Date.now() - startTime) / 1000;
+      timerDisplayEl.textContent = formatTime(currentElapsed);
+
+      if (ship.invulnerableTimer > 0) {
+        ship.invulnerableTimer--;
+      }
+
+      // 우주선 이동
+      if (keys.ArrowLeft) ship.x -= ship.speed;
+      if (keys.ArrowRight) ship.x += ship.speed;
+      if (ship.x < ship.width / 2) ship.x = ship.width / 2;
+      if (ship.x > canvas.width - ship.width / 2) ship.x = canvas.width - ship.width / 2;
+
+      // 표적 이동 및 공격 주기
+      targets.forEach(t => {
+        t.x += t.vx;
+        t.y += t.vy;
+
+        if (t.x - t.radius < 12 || t.x + t.radius > canvas.width - 12) t.vx *= -1;
+        if (t.y - t.radius < 25 || t.y + t.radius > canvas.height - 180) t.vy *= -1;
+
+        if (t.canAttack) {
+          t.attackCooldown--;
+          if (t.attackCooldown <= 0) {
+            fireEnemyBullet(t);
+            t.attackCooldown = cfg.attackIntervalMin + Math.floor(Math.random() * cfg.attackIntervalRange);
+          }
+        }
+      });
+
+      // 적 조준 탄환 이동
+      for (let i = enemyBullets.length - 1; i >= 0; i--) {
+        const eb = enemyBullets[i];
+        eb.x += eb.vx;
+        eb.y += eb.vy;
+
+        if (eb.y > canvas.height + 20 || eb.y < -20 || eb.x < -20 || eb.x > canvas.width + 20) {
+          enemyBullets.splice(i, 1);
+          continue;
+        }
+
+        if (ship.invulnerableTimer === 0) {
+          const distToShip = Math.hypot(eb.x - ship.x, eb.y - ship.y);
+          if (distToShip < eb.radius + ship.width / 2.3) {
+            enemyBullets.splice(i, 1);
+            handlePlayerDamaged();
+            continue;
+          }
+        }
+      }
+
+      // 플레이어 미사일
+      for (let i = missiles.length - 1; i >= 0; i--) {
+        const m = missiles[i];
+        m.y -= m.speed;
+
+        if (m.y < 0) {
+          missiles.splice(i, 1);
+          continue;
+        }
+
+        const expected = getCurrentExpectedTarget();
+
+        for (let j = targets.length - 1; j >= 0; j--) {
+          const t = targets[j];
+          const dist = Math.hypot(m.x - t.x, m.y - t.y);
+
+          if (dist < m.radius + t.radius) {
+            missiles.splice(i, 1);
+
+            if (t.rank === expected.rank) {
+              playSound('hit');
+              createExplosion(t.x, t.y, t.color, 26);
+              targets.splice(j, 1);
+              updateUI();
+
+              if (targets.length === 0) {
+                handleGameClear();
+              }
+            } else {
+              handleWrongHit(t, expected, m.x, m.y);
+            }
+            break;
+          }
+        }
+      }
+    }
+
+    // 파티클
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      p.life--;
+      if (p.life <= 0) particles.splice(i, 1);
+    }
+  }
+
+  // 9. 렌더링
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // 격자 배경
+    ctx.strokeStyle = 'rgba(51, 65, 85, 0.18)';
+    ctx.lineWidth = 1;
+    for (let x = 40; x < canvas.width; x += 40) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, canvas.height);
+      ctx.stroke();
+    }
+    for (let y = 40; y < canvas.height; y += 40) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(canvas.width, y);
+      ctx.stroke();
+    }
+
+    // 1) 발사 직전 적의 조준 레이저 라인
+    if (gameState === 'PLAYING') {
+      targets.forEach(t => {
+        if (t.canAttack && t.attackCooldown <= 35) {
+          ctx.save();
+          const alpha = (35 - t.attackCooldown) / 35;
+          ctx.strokeStyle = `rgba(239, 68, 68, ${alpha * 0.75})`;
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([6, 6]);
+          ctx.beginPath();
+          ctx.moveTo(t.x, t.y);
+          ctx.lineTo(ship.x, ship.y);
+          ctx.stroke();
+          ctx.restore();
+        }
+      });
+    }
+
+    // 2) 발사대 (대공 자주포형 발사 차량) - 피격 단계별 무지개색 + 파손 형태
+    if (ship.invulnerableTimer === 0 || Math.floor(ship.invulnerableTimer / 6) % 2 === 0) {
+      ctx.save();
+      ctx.translate(ship.x, ship.y);
+      const dmg = ship.invulnerableTimer > 0;
+      const stage = Math.max(0, Math.min(7, 7 - ship.lives)); // 0(무손상) ~ 7(파괴)
+      const RAINBOW      = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#312e81', '#8b5cf6'];
+      const RAINBOW_LIGHT = ['#fca5a5', '#fdba74', '#fde047', '#86efac', '#93c5fd', '#818cf8', '#d8b4fe'];
+      const RAINBOW_DARK  = ['#7f1d1d', '#7c2d12', '#713f12', '#14532d', '#1e3a8a', '#1e1b4b', '#4c1d95'];
+      const hullTop = stage > 0 ? RAINBOW_LIGHT[stage - 1] : '#7c8ba3';
+      const hullMid = stage > 0 ? RAINBOW[stage - 1] : '#3b4a5e';
+      const hullBot = stage > 0 ? RAINBOW_DARK[stage - 1] : '#151d2b';
+      const accentColor = dmg ? '#ffffff' : '#38bdf8';
+      const hw = ship.width / 2;
+      const hh = ship.height / 2;
+
+      // 바닥 그림자
+      ctx.beginPath();
+      ctx.ellipse(0, hh + 8, hw * 0.95, 7, 0, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+      ctx.fill();
+
+      // 무한궤도(트랙) - 입체 그라데이션
+      const trackGrad = ctx.createLinearGradient(0, hh - 8, 0, hh + 6);
+      trackGrad.addColorStop(0, '#3f4c60');
+      trackGrad.addColorStop(1, '#0a0f18');
+      ctx.fillStyle = trackGrad;
+      if (ctx.roundRect) {
+        ctx.beginPath();
+        ctx.roundRect(-hw - 4, hh - 8, ship.width + 8, 13, 5);
+        ctx.fill();
+      } else {
+        ctx.fillRect(-hw - 4, hh - 8, ship.width + 8, 13);
+      }
+      // 트랙 휠 (금속 광택)
+      for (let i = 0; i < 6; i++) {
+        const wx = -hw + 2 + i * (ship.width - 4) / 5;
+        const wheelGrad = ctx.createRadialGradient(wx - 1.2, hh - 2.2, 0.4, wx, hh - 1, 4.4);
+        wheelGrad.addColorStop(0, '#cbd5e1');
+        wheelGrad.addColorStop(1, '#0b1220');
+        ctx.beginPath();
+        ctx.arc(wx, hh - 1, 4.2, 0, Math.PI * 2);
+        ctx.fillStyle = wheelGrad;
+        ctx.fill();
+      }
+
+      // 차체(헐) - 피격 누적으로 찌그러진 다각형 + 입체 그라데이션
+      const hullGrad = ctx.createLinearGradient(0, -hh * 0.3, 0, hh);
+      hullGrad.addColorStop(0, hullTop);
+      hullGrad.addColorStop(0.45, hullMid);
+      hullGrad.addColorStop(1, hullBot);
+      const HULL_BASE_PTS_LOCAL = HULL_BASE_PTS;
+      ctx.beginPath();
+      HULL_BASE_PTS_LOCAL.forEach((p, i) => {
+        const j = ship.hullJitter[i] || { dx: 0, dy: 0 };
+        const px = p.x * hw + j.dx;
+        const py = -hh * 0.3 + p.y * (hh * 1.3) + j.dy;
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      });
+      ctx.closePath();
+      ctx.fillStyle = hullGrad;
+      ctx.fill();
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = accentColor;
+      ctx.stroke();
+      // 상단 하이라이트 라인 (금속 광택 느낌)
+      ctx.beginPath();
+      ctx.moveTo(-hw + 7, -hh * 0.3 + 3);
+      ctx.lineTo(hw - 7, -hh * 0.3 + 3);
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.28)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // 포탑 - 피격 시 위치가 어긋나는 구형 하이라이트 그라데이션
+      const trx = ship.turretOffset.x;
+      const trY = -hh * 0.4 + ship.turretOffset.y;
+      const turretGrad = ctx.createRadialGradient(trx - hw * 0.15, trY - hh * 0.22, 2, trx, trY, hw * 0.5);
+      turretGrad.addColorStop(0, dmg ? '#ffffff' : '#a9b6c9');
+      turretGrad.addColorStop(0.55, hullMid);
+      turretGrad.addColorStop(1, hullBot);
+      ctx.beginPath();
+      ctx.ellipse(trx, trY, hw * 0.46, hh * 0.55, 0, 0, Math.PI * 2);
+      ctx.fillStyle = turretGrad;
+      ctx.fill();
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = accentColor;
+      ctx.stroke();
+
+      // 포신 (피격 누적으로 휘어짐 - 원통형 하이라이트)
+      ctx.save();
+      ctx.rotate(ship.barrelBend);
+      const barrelGrad = ctx.createLinearGradient(-4, 0, 4, 0);
+      barrelGrad.addColorStop(0, '#475569');
+      barrelGrad.addColorStop(0.5, '#e2e8f0');
+      barrelGrad.addColorStop(1, '#334155');
+      ctx.fillStyle = barrelGrad;
+      ctx.fillRect(-4, -hh - 24, 8, 27);
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(-5, -hh - 24, 10, 6);
+      ctx.fillStyle = accentColor;
+      ctx.fillRect(-4, -hh - 19, 8, 2.5);
+      ctx.restore();
+
+      // "최강동패" 각인 플레이트 (음각 느낌)
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.65)';
+      ctx.fillRect(-hw + 8, 2, ship.width - 16, 19);
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(-hw + 8, 2, ship.width - 16, 19);
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = 'bold 14px Pretendard, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('최강동패', 0, 12);
+
+      // 누적 피격 손상 (그을음 + 균열 + 잔여 연기)
+      ship.damageMarks.forEach((dm, idx) => {
+        const wobble = Math.sin(Date.now() / 260 + dm.seed) * 1.5;
+        const soot = ctx.createRadialGradient(dm.x, dm.y, 0, dm.x, dm.y, dm.r * 2);
+        soot.addColorStop(0, 'rgba(8, 8, 8, 0.55)');
+        soot.addColorStop(1, 'rgba(8, 8, 8, 0)');
+        ctx.beginPath();
+        ctx.arc(dm.x, dm.y, dm.r * 2, 0, Math.PI * 2);
+        ctx.fillStyle = soot;
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(dm.crack[0].x, dm.crack[0].y);
+        dm.crack.forEach(p => ctx.lineTo(p.x, p.y));
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.75)';
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(dm.x + wobble, dm.y - 11 - (idx % 3) * 3, 3.2, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(148, 163, 184, 0.25)';
+        ctx.fill();
+      });
+
+      // 좌우 측면에서 떨어져 나간 파편 (금이 가서 덜렁거리는 조각)
+      ship.brokenChips.forEach(c => {
+        const anchorX = c.nx * hw;
+        const anchorY = -hh * 0.3 + c.ny * (hh * 1.3);
+        const wob = Math.sin(Date.now() / 300 + c.seed) * 2;
+        const dirSign = c.side === 'left' ? -1 : 1;
+        const cx = anchorX + c.driftX + wob * dirSign;
+        const cy = anchorY + c.driftY;
+
+        // 연결된 균열선 (완전히 떨어지지 않고 대롱대롱 붙어있는 느낌)
+        ctx.beginPath();
+        ctx.moveTo(anchorX, anchorY);
+        ctx.lineTo(cx, cy);
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(c.rot + wob * 0.02);
+        ctx.beginPath();
+        ctx.moveTo(-c.size * 0.6, -c.size * 0.5);
+        ctx.lineTo(c.size * 0.7, -c.size * 0.3);
+        ctx.lineTo(c.size * 0.4, c.size * 0.6);
+        ctx.lineTo(-c.size * 0.5, c.size * 0.4);
+        ctx.closePath();
+        ctx.fillStyle = hullMid;
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.6)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        ctx.restore();
+      });
+
+      ctx.restore();
+    }
+
+    // 3) 플레이어 미사일 (세련된 로켓형 + "최강동패" 라벨)
+    missiles.forEach(m => {
+      ctx.save();
+      ctx.translate(m.x, m.y);
+      const bw = m.radius;        // 몸체 반폭
+      const bl = m.radius * 3;    // 몸체 반길이
+
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = '#fb7185';
+
+      // 몸체 (매끈한 캡슐형 로켓)
+      const bodyGrad = ctx.createLinearGradient(-bw, 0, bw, 0);
+      bodyGrad.addColorStop(0, '#9f1239');
+      bodyGrad.addColorStop(0.5, '#fb7185');
+      bodyGrad.addColorStop(1, '#9f1239');
+      ctx.beginPath();
+      ctx.moveTo(0, -bl);
+      ctx.quadraticCurveTo(bw, -bl * 0.4, bw, bl * 0.5);
+      ctx.quadraticCurveTo(bw, bl, 0, bl);
+      ctx.quadraticCurveTo(-bw, bl, -bw, bl * 0.5);
+      ctx.quadraticCurveTo(-bw, -bl * 0.4, 0, -bl);
+      ctx.closePath();
+      ctx.fillStyle = bodyGrad;
+      ctx.fill();
+      ctx.lineWidth = 1.2;
+      ctx.strokeStyle = '#fecdd3';
+      ctx.stroke();
+
+      // 중앙 포인트 스트라이프
+      ctx.fillStyle = '#fde68a';
+      ctx.fillRect(-bw * 0.55, -bl * 0.05, bw * 1.1, bl * 0.24);
+
+      // 꼬리 핀
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#9f1239';
+      ctx.beginPath();
+      ctx.moveTo(-bw * 0.8, bl * 0.45);
+      ctx.lineTo(-bw * 2.1, bl * 0.95);
+      ctx.lineTo(-bw * 0.5, bl * 0.8);
+      ctx.closePath();
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(bw * 0.8, bl * 0.45);
+      ctx.lineTo(bw * 2.1, bl * 0.95);
+      ctx.lineTo(bw * 0.5, bl * 0.8);
+      ctx.closePath();
+      ctx.fill();
+
+      // "최강동패" 라벨 (세로 각인)
+      ctx.fillStyle = '#fff1f2';
+      ctx.font = 'bold 7px Pretendard, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ['최', '강', '동', '패'].forEach((ch, i) => {
+        ctx.fillText(ch, 0, -bl * 0.62 + i * 7.6);
+      });
+
+      // 분사 화염
+      ctx.fillStyle = '#fbbf24';
+      ctx.beginPath();
+      ctx.moveTo(-bw * 0.55, bl);
+      ctx.lineTo(bw * 0.55, bl);
+      ctx.lineTo(0, bl + 9 + Math.random() * 5);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.restore();
+    });
+
+    // 4) 적 조준 플라즈마 탄환
+    enemyBullets.forEach(eb => {
+      ctx.save();
+      ctx.shadowBlur = 12;
+      ctx.shadowColor = '#ef4444';
+      ctx.fillStyle = '#ef4444';
+      ctx.beginPath();
+      ctx.arc(eb.x, eb.y, eb.radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(eb.x, eb.y, eb.radius * 0.45, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    });
+
+    // 5) 표적 원소 렌더링
+    targets.forEach(t => {
+      ctx.save();
+      ctx.translate(t.x, t.y);
+
+      if (t.canAttack) {
+        ctx.save();
+        const pulse = 0.5 + Math.sin(Date.now() * 0.008) * 0.35;
+        ctx.strokeStyle = `rgba(239, 68, 68, ${pulse})`;
+        ctx.lineWidth = 2;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.arc(0, 0, t.radius + 7, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      ctx.shadowBlur = t.canAttack ? 12 : 8;
+      ctx.shadowColor = t.canAttack ? '#ef4444' : t.color;
+      const sheen = ctx.createRadialGradient(-t.radius * 0.35, -t.radius * 0.35, t.radius * 0.1, 0, 0, t.radius * 1.1);
+      sheen.addColorStop(0, 'rgba(148, 163, 184, 0.22)');
+      sheen.addColorStop(0.5, 'rgba(15, 23, 42, 0.92)');
+      sheen.addColorStop(1, 'rgba(15, 23, 42, 0.96)');
+      ctx.fillStyle = sheen;
+      drawShapeByGroup(ctx, t.shape, t.radius, t.color);
+      ctx.fill();
+
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = t.color;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(-t.radius * 0.32, -t.radius * 0.32, t.radius * 0.22, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.16)';
+      ctx.fill();
+
+      if (t.shape === 'coin') {
+        ctx.beginPath();
+        ctx.arc(0, 0, t.radius - 6, 0, Math.PI * 2);
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+        ctx.stroke();
+      }
+
+      ctx.shadowBlur = 0;
+
+      // 폰트 크기는 난이도(원소 크기)에 따라 자동 조정
+      const symbolFontSize = t.radius >= 28 ? 16 : 14;
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = `bold ${symbolFontSize}px Pretendard, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(t.symbol, 0, -3);
+
+      const nameFontSize = t.radius >= 28 ? 10 : 9;
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = `${nameFontSize}px Pretendard, sans-serif`;
+      ctx.fillText(`${t.name}(${t.group})`, 0, 13);
+
+      if (t.canAttack) {
+        ctx.fillStyle = '#ef4444';
+        ctx.font = 'bold 10px sans-serif';
+        ctx.fillText('⚡공격', 0, -t.radius - 3);
+      }
+
+      ctx.restore();
+    });
+
+    // 6) 파티클
+    particles.forEach(p => {
+      ctx.save();
+      ctx.globalAlpha = p.life / p.maxLife;
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    });
+  }
+
+  function loop() {
+    update();
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  updateDiffDisplayUI();
+  renderRankTable();
+  loop();
+</script>
+</body>
+</html>
+
